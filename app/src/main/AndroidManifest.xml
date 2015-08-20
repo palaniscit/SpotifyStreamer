@@ -26,6 +26,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.palaniyappan.spotifystreamer.SearchArtistActivity" />
         </activity>
+        <activity
+            android:name=".PlaybackActivity"
+            android:label="@string/title_activity_playback"
+            android:parentActivityName=".ViewTopTracksActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.palaniyappan.spotifystreamer.ViewTopTracksActivity" />
+        </activity>
     </application>
 
 </manifest>

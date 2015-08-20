@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -39,11 +41,21 @@ public class ViewTopTracksActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_view_top_tracks, container, false);
 
         // Array adapter for top tracks list for the selected artist.
-        topTracksAdapter = new TopTracksAdapter(getActivity(), R.layout.top_tracks_layout, new ArrayList<TopTrackParcelable>());
+        topTracksAdapter = new TopTracksAdapter(getActivity(),
+                R.layout.top_tracks_layout, new ArrayList<TopTrackParcelable>());
 
         // Set the array adapter to the list view
         ListView topTracksListView = (ListView)rootView.findViewById(R.id.top_traacks_list);
         topTracksListView.setAdapter(topTracksAdapter);
+
+        topTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                //Intent playbackIntent = new Intent(getActivity(), PlaybackActivity.class);
+                //startActivity(playbackIntent);
+                showDialog();
+            }
+        });
 
         // Call the async task to load the top tracks for the artist.
         Bundle args = getArguments();
@@ -117,5 +129,33 @@ public class ViewTopTracksActivityFragment extends Fragment {
                 util.displayToast(getActivity(), Toast.LENGTH_SHORT, getString(R.string.no_tracks_found));
             }
         }
+    }
+
+    public void showDialog() {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        PlaybackFragment newFragment = new PlaybackFragment();
+
+        boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
+
+        if(showDialog) {
+            newFragment.show(fragmentManager, "dialog");
+        } else {
+            Intent playbackIntent = new Intent(getActivity(), PlaybackActivity.class);
+            startActivity(playbackIntent);
+        }
+
+        /*if (mIsLargeLayout) {
+            // The device is using a large layout, so show the fragment as a dialog
+            newFragment.show(fragmentManager, "dialog");
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(R.id.playback_container, newFragment)
+                    .addToBackStack(null).commit();
+        }*/
     }
 }

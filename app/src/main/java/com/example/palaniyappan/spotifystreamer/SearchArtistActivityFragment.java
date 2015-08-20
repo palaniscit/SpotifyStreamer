@@ -57,11 +57,16 @@ public class SearchArtistActivityFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // Get the artist details of the item selected by the user.
                 ArtistParcelable clickedArtist = artistListAdapter.getItem(position);
+
+                // Call the onItemSelected() method of the Activity
+                ((Callback)getActivity()).onItemSelected(clickedArtist);
+
+
                 // Create an intent to open the activity to view top tracks of the selected artist
-                Intent viewTopTrackIntent = new Intent(getActivity(), ViewTopTracksActivity.class);
+                /*Intent viewTopTrackIntent = new Intent(getActivity(), ViewTopTracksActivity.class);
                 // Pass on the artist id to the Top tracks activity
                 viewTopTrackIntent.putExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME, clickedArtist.getArtistId());
-                startActivity(viewTopTrackIntent);
+                startActivity(viewTopTrackIntent);*/
             }
         });
 
@@ -175,5 +180,9 @@ public class SearchArtistActivityFragment extends Fragment {
                 }
             }
         }
+    }
+
+    public interface Callback{
+        public void onItemSelected(ArtistParcelable selectedArtist);
     }
 }

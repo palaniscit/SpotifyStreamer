@@ -1,17 +1,36 @@
 package com.example.palaniyappan.spotifystreamer;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class SearchArtistActivity extends ActionBarActivity {
+public class SearchArtistActivity extends ActionBarActivity implements SearchArtistActivityFragment.Callback{
+
+    private boolean mTwoPane;
+    private final String TOP_TRACKS_FRAGMENT_TAG = "TTFTAG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_artist);
+
+        // Check if this is a two pane layout for tablets or the single pane layout for phones
+        if(findViewById(R.id.top_tracks_container) != null) {
+            mTwoPane = true;
+            if(savedInstanceState == null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.top_tracks_container,
+                                new ViewTopTracksActivityFragment(),
+                                TOP_TRACKS_FRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+             mTwoPane = false;
+        }
     }
 
 
@@ -35,5 +54,28 @@ public class SearchArtistActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(ArtistParcelable selectedArtist) {
+        if(mTwoPane) {
+            Bundle args = new Bundle();
+            args.putString(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME,
+                    selectedArtist.getArtistId());
+            ViewTopTracksActivityFragment af = new ViewTopTracksActivityFragment();
+            af.setArguments(args);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.top_tracks_container,
+                            af,
+                            TOP_TRACKS_FRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent topTracksIntent = new Intent(getApplicationContext(),
+                    ViewTopTracksActivity.class);
+            topTracksIntent.putExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME,
+                    selectedArtist.getArtistId());
+            startActivity(topTracksIntent);
+        }
     }
 }

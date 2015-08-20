@@ -1,5 +1,6 @@
 package com.example.palaniyappan.spotifystreamer;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,22 @@ public class ViewTopTracksActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_top_tracks);
+        if(savedInstanceState == null) {
+            Bundle args = new Bundle();
+            Intent intent = getIntent();
+            if(intent != null && intent.
+                    hasExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME)) {
+                args.putString(
+                        SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME,
+                        intent.getStringExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME)
+                );
+            }
+            ViewTopTracksActivityFragment af = new ViewTopTracksActivityFragment();
+            af.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.top_tracks_container, af)
+                    .commit();
+        }
     }
 
 

@@ -46,14 +46,14 @@ public class ViewTopTracksActivityFragment extends Fragment {
         topTracksListView.setAdapter(topTracksAdapter);
 
         // Call the async task to load the top tracks for the artist.
-        Intent intent = getActivity().getIntent();
+        Bundle args = getArguments();
         if(savedInstanceState != null && savedInstanceState.
                 containsKey(SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT)) {
             List<TopTrackParcelable> topTrackList = savedInstanceState.
                     getParcelableArrayList(SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT);
             topTracksAdapter.addAll(topTrackList);
-        } else if(intent.hasExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME)) {
-            getTopTracks(intent.getStringExtra(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME));
+        } else if(args != null) {
+            getTopTracks(args.getString(SpotifyStreamerConstants.KEY_SELECTED_ARTIST_NAME));
         }
 
         return rootView;

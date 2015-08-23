@@ -51,9 +51,38 @@ public class ViewTopTracksActivityFragment extends Fragment {
         topTracksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //Intent playbackIntent = new Intent(getActivity(), PlaybackActivity.class);
-                //startActivity(playbackIntent);
-                showDialog();
+                TopTrackParcelable selectedTrack = topTracksAdapter.getItem(i);
+
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                PlaybackFragment newFragment = new PlaybackFragment();
+
+                boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
+
+                if(showDialog) {
+                    Bundle args = new Bundle();
+                    args.putParcelable(
+                            SpotifyStreamerConstants.SELECTED_TRACK_DETAILS,
+                            selectedTrack);
+                    args.putParcelableArrayList(
+                            SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT,
+                            (ArrayList) topTracksAdapter.getItems());
+                    args.putInt(
+                            SpotifyStreamerConstants.KEY_CURRENT_SELECTED_TRACK_POSITION,
+                            i+1);
+                    newFragment.setArguments(args);
+                    newFragment.show(fragmentManager, "dialog");
+                } else {
+                    Intent playbackIntent = new Intent(getActivity(), PlaybackActivity.class);
+                    playbackIntent.putExtra(SpotifyStreamerConstants.SELECTED_TRACK_DETAILS,
+                            selectedTrack);
+                    playbackIntent.putParcelableArrayListExtra(
+                            SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT,
+                            (ArrayList) topTracksAdapter.getItems());
+                    playbackIntent.putExtra(
+                            SpotifyStreamerConstants.KEY_CURRENT_SELECTED_TRACK_POSITION,
+                            i+1);
+                    startActivity(playbackIntent);
+                }
             }
         });
 
@@ -79,7 +108,8 @@ public class ViewTopTracksActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save state information with a collection of key-value pairs
-        savedInstanceState.putParcelableArrayList(SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT, (ArrayList)topTracksAdapter.getItems());
+        savedInstanceState.putParcelableArrayList(SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT,
+                (ArrayList)topTracksAdapter.getItems());
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -111,51 +141,14 @@ public class ViewTopTracksActivityFragment extends Fragment {
             List<Track> trackList = topTracks.tracks;
             topTracksAdapter.clear();
 
-            String url = null;
-            String albumName = null;
             if(trackList != null && !trackList.isEmpty()) {
                 for(Track track: trackList) {
-                    if(track.album != null && track.album.images != null
-                            && !track.album.images.isEmpty()) {
-                        url = track.album.images.get(0).url;
-                    }
-                    if(track.album != null) {
-                        albumName = track.album.name;
-                    }
-                    topTracksAdapter.add(new TopTrackParcelable(track.name, albumName, url));
+                    topTracksAdapter.add(new TopTrackParcelable(track));
                 }
             } else {
                 SpotifyUtil util = new SpotifyUtil();
                 util.displayToast(getActivity(), Toast.LENGTH_SHORT, getString(R.string.no_tracks_found));
             }
         }
-    }
-
-    public void showDialog() {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        PlaybackFragment newFragment = new PlaybackFragment();
-
-        boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
-
-        if(showDialog) {
-            newFragment.show(fragmentManager, "dialog");
-        } else {
-            Intent playbackIntent = new Intent(getActivity(), PlaybackActivity.class);
-            startActivity(playbackIntent);
-        }
-
-        /*if (mIsLargeLayout) {
-            // The device is using a large layout, so show the fragment as a dialog
-            newFragment.show(fragmentManager, "dialog");
-        } else {
-            // The device is smaller, so show the fragment fullscreen
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            // For a little polish, specify a transition animation
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            // To make it fullscreen, use the 'content' root view as the container
-            // for the fragment, which is always the root view for the activity
-            transaction.add(R.id.playback_container, newFragment)
-                    .addToBackStack(null).commit();
-        }*/
     }
 }

@@ -1,11 +1,15 @@
 package com.example.palaniyappan.spotifystreamer;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class PlaybackActivity extends ActionBarActivity {
@@ -18,6 +22,30 @@ public class PlaybackActivity extends ActionBarActivity {
         if(savedInstanceState == null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             PlaybackFragment newFragment = new PlaybackFragment();
+
+            // Get playback artist details
+            Intent intent = getIntent();
+            if(intent != null) {
+                TopTrackParcelable selectedTrack = intent.getExtras().
+                        getParcelable(SpotifyStreamerConstants.SELECTED_TRACK_DETAILS);
+                List<TopTrackParcelable> topTracksList = intent.getParcelableArrayListExtra(
+                        SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT);
+                int currentTrackPosition = intent.getIntExtra(
+                        SpotifyStreamerConstants.KEY_CURRENT_SELECTED_TRACK_POSITION, 1);
+                // Set the value into the arguments passed to the fragment
+                Bundle args = new Bundle();
+                args.putParcelable(
+                        SpotifyStreamerConstants.SELECTED_TRACK_DETAILS,
+                        selectedTrack);
+                args.putParcelableArrayList(
+                        SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT,
+                        (ArrayList) topTracksList);
+                args.putInt(
+                        SpotifyStreamerConstants.KEY_CURRENT_SELECTED_TRACK_POSITION,
+                        currentTrackPosition);
+                newFragment.setArguments(args);
+            }
+
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             // For a little polish, specify a transition animation

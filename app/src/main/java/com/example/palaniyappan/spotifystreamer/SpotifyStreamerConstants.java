@@ -13,4 +13,8 @@ public interface SpotifyStreamerConstants {
     String KEY_ARTIST_SEARCH_RESULT= "artistSearchResultList";
 
     String KEY_TOP_TRACK_RESULT = "topTracksList";
+
+    String SELECTED_TRACK_DETAILS = "selectedTrackDetails";
+
+    String KEY_CURRENT_SELECTED_TRACK_POSITION = "currentSelectedTrackPosition";
 }

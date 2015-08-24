@@ -5,10 +5,15 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.widget.SeekBar;
+
+import com.example.palaniyappan.spotifystreamer.PlaybackViewHolder;
+import com.example.palaniyappan.spotifystreamer.Utility;
 
 import java.io.IOException;
 
@@ -21,6 +26,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     String mPreviewUrl;
     private final IBinder mMusicBind = new MusicBinder();
     SeekBar mPlayerSeekBar;
+    PlaybackViewHolder mViewHolder;
+    Handler mCompletionHandler;
+    Handler mTimeUpdateHandler;
 
     @Override
     public void onCreate() {
@@ -31,7 +39,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void initMusicPlayer() {
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setOnErrorListener(this);
         mMediaPlayer.setOnCompletionListener(this);
@@ -39,6 +46,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void setSongUrl(String previewUrl) {
         this.mPreviewUrl = previewUrl;
+    }
+
+    public void setViewHolder(PlaybackViewHolder viewHolder) {
+        this.mViewHolder = viewHolder;
     }
 
     public void bindProgressBar(SeekBar seekBar) {
@@ -66,14 +77,28 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void handleSeekBar() {
         int currentPosition = 0;
-        int total = mMediaPlayer.getDuration();
-        Log.v("SeekBarTest", String.valueOf(total));
-        //mPlayerSeekBar.setMax(total);
-        while (mMediaPlayer != null && currentPosition < total) {
-            currentPosition = mMediaPlayer.getCurrentPosition();
-            Log.v("SeekBarTest", String.valueOf(currentPosition));
-            mPlayerSeekBar.setProgress(currentPosition);
+        if(mMediaPlayer != null) {
+            int total = mMediaPlayer.getDuration();
+            //mPlayerSeekBar.setMax(total);
+            while (currentPosition <= total) {
+                currentPosition = mMediaPlayer.getCurrentPosition();
+                mPlayerSeekBar.setProgress(currentPosition);
+                Message msg = new Message();
+                msg.obj = Utility.convertMilliSecToDesiredFormat(currentPosition);
+                mTimeUpdateHandler.sendMessage(msg);
+                //mTimeUpdateHandler.send;
+            /*mViewHolder.playCurrentTimeView.
+                    setText(Utility.convertMilliSecToDesiredFormat(currentPosition));*/
+            }
         }
+    }
+
+    public void setCompletionHandler(Handler handler) {
+        mCompletionHandler = handler;
+    }
+
+    public void setTimeUpdateHandler(Handler handler) {
+        mTimeUpdateHandler = handler;
     }
 
     @Override
@@ -84,7 +109,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public boolean onUnbind(Intent intent) {
         mMediaPlayer.stop();
-        mMediaPlayer.release();
+        //mMediaPlayer.release();
         return false;
     }
 
@@ -92,13 +117,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onPrepared(MediaPlayer player) {
         player.start();
         int total = player.getDuration();
-        Log.v("SeekBarTest", String.valueOf(total));
         mPlayerSeekBar.setMax(total);
+        mViewHolder.totalPlayTimeView.setText(Utility.convertMilliSecToDesiredFormat(total));
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-
+        mCompletionHandler.sendEmptyMessage(0);
     }
 
     @Override
@@ -106,14 +131,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return false;
     }
 
-    public void playSong() {
-        mMediaPlayer.reset();
-        try {
-            mMediaPlayer.setDataSource(mPreviewUrl);
-        } catch(IOException e) {
-            e.printStackTrace();
+    synchronized public void playSong() {
+        synchronized (this) {
+            mMediaPlayer.reset();
+            try {
+                mMediaPlayer.setDataSource(mPreviewUrl);
+                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+            mMediaPlayer.prepareAsync();
         }
-        mMediaPlayer.prepareAsync();
     }
 
 

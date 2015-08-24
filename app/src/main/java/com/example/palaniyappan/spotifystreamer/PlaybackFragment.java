@@ -5,38 +5,22 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.PowerManager;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.palaniyappan.spotifystreamer.service.MediaPlayerService;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-
-import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.Tracks;
-import retrofit.RetrofitError;
 
 /**
  * Created by Pal on 8/19/15.
@@ -46,7 +30,7 @@ public class PlaybackFragment extends DialogFragment {
     private Integer mCurrentTrackPosition;
     private TopTrackParcelable mSelectedTrack;
     private PlaybackViewHolder mPlaybackViewHolder;
-
+    private List<TopTrackParcelable> topTracksList;
     private MediaPlayerService mMediaPlayerService;
     private Intent mPlayIntent;
     private boolean mMusicBound=false;
@@ -56,8 +40,23 @@ public class PlaybackFragment extends DialogFragment {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             UpdateSeekBarTask task = new UpdateSeekBarTask();
-            String temp = "";
-            task.execute(temp);
+            task.execute();
+        }
+    };
+
+    private Handler mTrackCompletionHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //playNextTrack();
+        }
+    };
+
+    private Handler mTimeUpdateHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            updateSeekTime((String)msg.obj);
         }
     };
 
@@ -71,7 +70,7 @@ public class PlaybackFragment extends DialogFragment {
             mSelectedTrack = args.getParcelable(
                     SpotifyStreamerConstants.SELECTED_TRACK_DETAILS);
 
-            final List<TopTrackParcelable> topTracksList = args.getParcelableArrayList(
+            topTracksList = args.getParcelableArrayList(
                     SpotifyStreamerConstants.KEY_TOP_TRACK_RESULT);
             mCurrentTrackPosition = args.getInt(
                     SpotifyStreamerConstants.KEY_CURRENT_SELECTED_TRACK_POSITION, 1);
@@ -80,7 +79,6 @@ public class PlaybackFragment extends DialogFragment {
                 mTopTracksMap = Utility.getTopTracksMap(topTracksList);
             }
 
-            //mHandler = new Handler();
             mHandler.postDelayed(run, 1000);
             // Set various UI fields from the Arguments received from Parent Activity
             mPlaybackViewHolder = new PlaybackViewHolder(rootView);
@@ -151,6 +149,9 @@ public class PlaybackFragment extends DialogFragment {
             //get service
             mMediaPlayerService = binder.getService();
             mMediaPlayerService.bindProgressBar(mPlaybackViewHolder.playProgressBar);
+            mMediaPlayerService.setViewHolder(mPlaybackViewHolder);
+            mMediaPlayerService.setCompletionHandler(mTrackCompletionHandler);
+            mMediaPlayerService.setTimeUpdateHandler(mTimeUpdateHandler);
             //pass list
             mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
             mMusicBound = true;
@@ -196,26 +197,56 @@ public class PlaybackFragment extends DialogFragment {
         }
     }
 
+    public void playNextTrack() {
+        if(mCurrentTrackPosition == topTracksList.size()) {
+            mCurrentTrackPosition = 1;
+        } else {
+            mCurrentTrackPosition++;
+        }
+        mSelectedTrack = mTopTracksMap.get(mCurrentTrackPosition);
+
+        // Update the view with appropriate data
+        loadPlaybackView();
+        if(mMediaPlayerService != null) {
+            mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
+            mMediaPlayerService.playSong();
+        }
+    }
+
+    public void updateSeekTime(String currentPlayingTime) {
+        mPlaybackViewHolder.playCurrentTimeView.
+                setText(currentPlayingTime);
+    }
+
     @Override
     public void onDestroy() {
-        getActivity().stopService(mPlayIntent);
-        mMediaPlayerService = null;
-        super.onDestroy();
+        try{
+            //mMediaPlayerService.stopSelf();
+            //mMediaPlayerService.stopService(mPlayIntent);
+            //getActivity().stopService(mPlayIntent);
+            UpdateSeekBarTask task = new UpdateSeekBarTask();
+            task.cancel(true);
+            mHandler.removeCallbacksAndMessages(null);
+            mTrackCompletionHandler.removeCallbacksAndMessages(null);
+            mTimeUpdateHandler.removeCallbacksAndMessages(null);
+            if(mMusicBound) {
+                getActivity().unbindService(mMusicConnection);
+            }
+            mMediaPlayerService = null;
+            super.onDestroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Async Task to load the artist result set for the search text.
-    class UpdateSeekBarTask extends AsyncTask<String, Void, Void> {
-        private String TAG = UpdateSeekBarTask.class.getSimpleName();
+    class UpdateSeekBarTask extends AsyncTask<Void, Void, Void> {
         @Override
-        protected Void doInBackground(String... params) {
-            if(params == null || params.length == 0) {
-                //return null;
-            }
-
+        protected Void doInBackground(Void... voids) {
             if(mMediaPlayerService != null) {
                 mMediaPlayerService.handleSeekBar();
             }
-
             return null;
         }
     }

@@ -21,4 +21,18 @@ public class Utility {
         return topTracksMap;
     }
 
+    public static String convertMilliSecToDesiredFormat(int milliseconds) {
+        String desiredFormat = "";
+
+        int inputInSeconds = milliseconds/1000;
+        int mins = (int) Math.floor(inputInSeconds/60);
+        int seconds = inputInSeconds%60;
+
+        desiredFormat = String.valueOf(mins) + ":" + String.valueOf(seconds);
+        return desiredFormat;
+    }
+
+    public static void main(String [] args) {
+        convertMilliSecToDesiredFormat(28606);
+    }
 }

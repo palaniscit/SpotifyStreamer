@@ -19,6 +19,8 @@ public class PlaybackViewHolder {
     public final ImageView nextTrackImageView;
     public final ImageView playTrackImageView;
     public final SeekBar playProgressBar;
+    public final TextView playCurrentTimeView;
+    public final TextView totalPlayTimeView;
 
     public PlaybackViewHolder(View view) {
         artistNameView = (TextView)view.findViewById(R.id.artist_name);
@@ -29,5 +31,7 @@ public class PlaybackViewHolder {
         nextTrackImageView = (ImageView)view.findViewById(R.id.playback_next);
         playTrackImageView = (ImageView)view.findViewById(R.id.playback_play);
         playProgressBar = (SeekBar)view.findViewById(R.id.playback_seekbar);
+        playCurrentTimeView = (TextView)view.findViewById(R.id.playback_timer);
+        totalPlayTimeView = (TextView)view.findViewById(R.id.playback_total_time);
     }
 }

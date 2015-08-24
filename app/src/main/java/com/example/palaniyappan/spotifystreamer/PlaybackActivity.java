@@ -78,4 +78,13 @@ public class PlaybackActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onDestroy() {
+        try{
+            super.onDestroy();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

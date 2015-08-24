@@ -9,7 +9,9 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
@@ -49,6 +51,16 @@ public class PlaybackFragment extends DialogFragment {
     private Intent mPlayIntent;
     private boolean mMusicBound=false;
 
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            UpdateSeekBarTask task = new UpdateSeekBarTask();
+            String temp = "";
+            task.execute(temp);
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
@@ -68,6 +80,8 @@ public class PlaybackFragment extends DialogFragment {
                 mTopTracksMap = Utility.getTopTracksMap(topTracksList);
             }
 
+            //mHandler = new Handler();
+            mHandler.postDelayed(run, 1000);
             // Set various UI fields from the Arguments received from Parent Activity
             mPlaybackViewHolder = new PlaybackViewHolder(rootView);
             loadPlaybackView();
@@ -136,6 +150,7 @@ public class PlaybackFragment extends DialogFragment {
             MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder)service;
             //get service
             mMediaPlayerService = binder.getService();
+            mMediaPlayerService.bindProgressBar(mPlaybackViewHolder.playProgressBar);
             //pass list
             mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
             mMusicBound = true;
@@ -155,9 +170,19 @@ public class PlaybackFragment extends DialogFragment {
             mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
             getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(mPlayIntent);
-            //mMediaPlayerService.playSong();
         }
     }
+
+    Runnable run = new Runnable() {
+
+        @Override
+        public void run() {
+            if(mMediaPlayerService != null) {
+                mHandler.sendEmptyMessage(0);
+                mHandler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     private void loadPlaybackView() {
         mPlaybackViewHolder.artistNameView.setText(mSelectedTrack.getArtistName());
@@ -178,14 +203,20 @@ public class PlaybackFragment extends DialogFragment {
         super.onDestroy();
     }
 
-    /*private void playTrack(String url) {
-        mMediaPlayer.reset();
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        try {
-            mMediaPlayer.setDataSource(url);
-        } catch(IOException e) {
-            e.printStackTrace();
+    // Async Task to load the artist result set for the search text.
+    class UpdateSeekBarTask extends AsyncTask<String, Void, Void> {
+        private String TAG = UpdateSeekBarTask.class.getSimpleName();
+        @Override
+        protected Void doInBackground(String... params) {
+            if(params == null || params.length == 0) {
+                //return null;
+            }
+
+            if(mMediaPlayerService != null) {
+                mMediaPlayerService.handleSeekBar();
+            }
+
+            return null;
         }
-        mMediaPlayer.prepareAsync();
-    }*/
+    }
 }

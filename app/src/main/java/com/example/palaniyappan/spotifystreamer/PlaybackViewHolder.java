@@ -3,6 +3,7 @@ package com.example.palaniyappan.spotifystreamer;
 import android.media.Image;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 /**
@@ -17,6 +18,7 @@ public class PlaybackViewHolder {
     public final ImageView previousTrackImageView;
     public final ImageView nextTrackImageView;
     public final ImageView playTrackImageView;
+    public final SeekBar playProgressBar;
 
     public PlaybackViewHolder(View view) {
         artistNameView = (TextView)view.findViewById(R.id.artist_name);
@@ -26,5 +28,6 @@ public class PlaybackViewHolder {
         previousTrackImageView = (ImageView)view.findViewById(R.id.playback_previous);
         nextTrackImageView = (ImageView)view.findViewById(R.id.playback_next);
         playTrackImageView = (ImageView)view.findViewById(R.id.playback_play);
+        playProgressBar = (SeekBar)view.findViewById(R.id.playback_seekbar);
     }
 }

@@ -7,11 +7,10 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-
-import com.example.palaniyappan.spotifystreamer.TopTrackParcelable;
+import android.util.Log;
+import android.widget.SeekBar;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by Pal on 8/23/15.
@@ -21,6 +20,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     MediaPlayer mMediaPlayer = null;
     String mPreviewUrl;
     private final IBinder mMusicBind = new MusicBinder();
+    SeekBar mPlayerSeekBar;
 
     @Override
     public void onCreate() {
@@ -41,22 +41,40 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         this.mPreviewUrl = previewUrl;
     }
 
-    /*public int onStartCommand(Intent intent, int flags, int startId) {
-        //...
-        if (intent.getAction().equals(ACTION_PLAY)) {
-            //mMediaPlayer = ... // initialize it here
-            mMediaPlayer.reset();
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            try {
-                mMediaPlayer.setDataSource(url);
-            } catch(IOException e) {
-                e.printStackTrace();
+    public void bindProgressBar(SeekBar seekBar) {
+        this.mPlayerSeekBar = seekBar;
+        this.mPlayerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    mMediaPlayer.seekTo(progress);
+                    Log.v("SeekBarTest", String.valueOf(progress));
+                }
             }
-            mMediaPlayer.setOnPreparedListener(this);
-            mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    public void handleSeekBar() {
+        int currentPosition = 0;
+        int total = mMediaPlayer.getDuration();
+        Log.v("SeekBarTest", String.valueOf(total));
+        //mPlayerSeekBar.setMax(total);
+        while (mMediaPlayer != null && currentPosition < total) {
+            currentPosition = mMediaPlayer.getCurrentPosition();
+            Log.v("SeekBarTest", String.valueOf(currentPosition));
+            mPlayerSeekBar.setProgress(currentPosition);
         }
-        return flags;
-    }*/
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -73,6 +91,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     /** Called when MediaPlayer is ready */
     public void onPrepared(MediaPlayer player) {
         player.start();
+        int total = player.getDuration();
+        Log.v("SeekBarTest", String.valueOf(total));
+        mPlayerSeekBar.setMax(total);
     }
 
     @Override
@@ -94,6 +115,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
         mMediaPlayer.prepareAsync();
     }
+
+
 
     public class MusicBinder extends Binder {
         public MediaPlayerService getService() {

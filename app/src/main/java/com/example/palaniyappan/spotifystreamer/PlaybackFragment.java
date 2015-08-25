@@ -177,6 +177,13 @@ public class PlaybackFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
+
+        boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
+
+        if(showDialog) {
+            getDialog().getWindow().setLayout(600, 600);
+            mPlaybackViewHolder.artistNameView.setPadding(0, 20, 0, 0);
+        }
         if(mPlayIntent == null) {
             mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
             getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
@@ -230,24 +237,25 @@ public class PlaybackFragment extends DialogFragment {
 
     @Override
     public void onDestroy() {
-        try{
-            //mMediaPlayerService.stopSelf();
-            //mMediaPlayerService.stopService(mPlayIntent);
-            //getActivity().stopService(mPlayIntent);
-            //UpdateSeekBarTask task = new UpdateSeekBarTask();
-            //task.cancel(true);
-            mHandler.removeCallbacksAndMessages(null);
-            mTrackCompletionHandler.removeCallbacksAndMessages(null);
-            mTimeUpdateHandler.removeCallbacksAndMessages(null);
-            if(mMusicBound) {
-                getActivity().unbindService(mMusicConnection);
-            }
-            mMediaPlayerService = null;
-            super.onDestroy();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //mMediaPlayerService.stopSelf();
+        //mMediaPlayerService.stopService(mPlayIntent);
+        //getActivity().stopService(mPlayIntent);
+        //UpdateSeekBarTask task = new UpdateSeekBarTask();
+        //task.cancel(true);
 
+        mHandler.removeCallbacksAndMessages(null);
+        mTrackCompletionHandler.removeCallbacksAndMessages(null);
+        mTimeUpdateHandler.removeCallbacksAndMessages(null);
+        if(mMusicBound) {
+            getActivity().unbindService(mMusicConnection);
+        }
+        mMediaPlayerService = null;
+        super.onDestroy();
+
+        boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
+        if(!showDialog) {
+            getActivity().finish();
+        }
     }
 
     // Async Task to load the artist result set for the search text.

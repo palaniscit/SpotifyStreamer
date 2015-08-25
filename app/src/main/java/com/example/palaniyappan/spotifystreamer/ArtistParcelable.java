@@ -54,8 +54,8 @@ public class ArtistParcelable implements Parcelable {
     public ArtistParcelable(Parcel in) {
         String[] data = new String[3];
         in.readStringArray(data);
-        artistId = data[0];
-        artistName = data[1];
+        artistName = data[0];
+        artistId = data[1];
         artistImageUrl = data[2];
     }
 }

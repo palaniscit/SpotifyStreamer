@@ -144,7 +144,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-
+    public void togglePlayPauseTrack() {
+        if(mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
+            mViewHolder.playTrackImageView.setImageResource(
+                    android.R.drawable.ic_media_play);
+        } else {
+            mMediaPlayer.start();
+            mViewHolder.playTrackImageView.setImageResource(
+                    android.R.drawable.ic_media_pause);
+        }
+    }
 
     public class MusicBinder extends Binder {
         public MediaPlayerService getService() {

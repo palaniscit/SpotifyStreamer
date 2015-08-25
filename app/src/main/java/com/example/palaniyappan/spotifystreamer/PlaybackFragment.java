@@ -97,7 +97,7 @@ public class PlaybackFragment extends DialogFragment {
 
                             // Update the view with appropriate data
                             loadPlaybackView();
-                            if(mMediaPlayerService != null) {
+                            if (mMediaPlayerService != null) {
                                 mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
                                 mMediaPlayerService.playSong();
                             }
@@ -121,6 +121,14 @@ public class PlaybackFragment extends DialogFragment {
                                 mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
                                 mMediaPlayerService.playSong();
                             }
+                        }
+                    });
+
+            mPlaybackViewHolder.playTrackImageView.setOnClickListener(
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            mMediaPlayerService.togglePlayPauseTrack();
                         }
                     });
         }
@@ -156,6 +164,8 @@ public class PlaybackFragment extends DialogFragment {
             mMediaPlayerService.setSongUrl(mSelectedTrack.getPreviewUrl());
             mMusicBound = true;
             mMediaPlayerService.playSong();
+            mPlaybackViewHolder.playTrackImageView.setImageResource(
+                    android.R.drawable.ic_media_pause);
         }
 
         @Override
@@ -224,8 +234,8 @@ public class PlaybackFragment extends DialogFragment {
             //mMediaPlayerService.stopSelf();
             //mMediaPlayerService.stopService(mPlayIntent);
             //getActivity().stopService(mPlayIntent);
-            UpdateSeekBarTask task = new UpdateSeekBarTask();
-            task.cancel(true);
+            //UpdateSeekBarTask task = new UpdateSeekBarTask();
+            //task.cancel(true);
             mHandler.removeCallbacksAndMessages(null);
             mTrackCompletionHandler.removeCallbacksAndMessages(null);
             mTimeUpdateHandler.removeCallbacksAndMessages(null);

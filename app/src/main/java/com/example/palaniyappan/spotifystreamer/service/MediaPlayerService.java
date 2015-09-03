@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -29,6 +30,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     PlaybackViewHolder mViewHolder;
     Handler mCompletionHandler;
     Handler mTimeUpdateHandler;
+    Bundle mSavedData;
 
     @Override
     public void onCreate() {
@@ -80,6 +82,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if(mMediaPlayer != null) {
             int total = mMediaPlayer.getDuration();
             //mPlayerSeekBar.setMax(total);
+            //mViewHolder.totalPlayTimeView.setText(Utility.convertMilliSecToDesiredFormat(total));
             while (currentPosition <= total) {
                 currentPosition = mMediaPlayer.getCurrentPosition();
                 mPlayerSeekBar.setProgress(currentPosition);
@@ -91,6 +94,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                     setText(Utility.convertMilliSecToDesiredFormat(currentPosition));*/
             }
         }
+    }
+
+    public Bundle getDataForScreenRotation() {
+        Bundle args = new Bundle();
+        args.putInt("playerProgress", mMediaPlayer.getCurrentPosition());
+        return args;
     }
 
     public void setCompletionHandler(Handler handler) {
@@ -119,6 +128,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         int total = player.getDuration();
         mPlayerSeekBar.setMax(total);
         mViewHolder.totalPlayTimeView.setText(Utility.convertMilliSecToDesiredFormat(total));
+        if(mSavedData != null) {
+            int playerProgress = mSavedData.getInt("playerProgress");
+            if(playerProgress > 0) {
+                mMediaPlayer.seekTo(playerProgress);
+            }
+        }
     }
 
     @Override
@@ -132,6 +147,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     synchronized public void playSong() {
+        /*if(mMediaPlayer.isPlaying()) {
+            return;
+        }*/
         synchronized (this) {
             mMediaPlayer.reset();
             try {
@@ -142,6 +160,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             }
             mMediaPlayer.prepareAsync();
         }
+    }
+
+    public void setmSavedData(Bundle savedData) {
+        this.mSavedData = savedData;
     }
 
     public void togglePlayPauseTrack() {

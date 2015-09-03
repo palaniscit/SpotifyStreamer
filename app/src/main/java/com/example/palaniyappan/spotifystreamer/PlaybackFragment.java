@@ -34,6 +34,8 @@ public class PlaybackFragment extends DialogFragment {
     private MediaPlayerService mMediaPlayerService;
     private Intent mPlayIntent;
     private boolean mMusicBound=false;
+    private boolean mScreenRotated = false;
+    private Bundle mSavedData;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -59,6 +61,12 @@ public class PlaybackFragment extends DialogFragment {
             updateSeekTime((String)msg.obj);
         }
     };
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setRetainInstance(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -131,6 +139,14 @@ public class PlaybackFragment extends DialogFragment {
                             mMediaPlayerService.togglePlayPauseTrack();
                         }
                     });
+
+            if(savedInstanceState != null
+                    && savedInstanceState.getParcelable("currentState") != null) {
+                mScreenRotated = true;
+                mSavedData = savedInstanceState.getParcelable("currentState");
+                //updateSeekTime(String.valueOf(seekBarProgress));
+            }
+
         }
 
         return rootView;
@@ -166,6 +182,9 @@ public class PlaybackFragment extends DialogFragment {
             mMediaPlayerService.playSong();
             mPlaybackViewHolder.playTrackImageView.setImageResource(
                     android.R.drawable.ic_media_pause);
+            if(mScreenRotated && mSavedData != null) {
+                mMediaPlayerService.setmSavedData(mSavedData);
+            }
         }
 
         @Override
@@ -186,8 +205,8 @@ public class PlaybackFragment extends DialogFragment {
         }
         if(mPlayIntent == null) {
             mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
-            getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(mPlayIntent);
+            getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -252,10 +271,17 @@ public class PlaybackFragment extends DialogFragment {
         mMediaPlayerService = null;
         super.onDestroy();
 
-        boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
+        /*boolean showDialog = getResources().getBoolean(R.bool.show_dialog);
         if(!showDialog) {
             getActivity().finish();
-        }
+        }*/
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Bundle args = mMediaPlayerService.getDataForScreenRotation();
+        outState.putParcelable("currentState", args);
+        super.onSaveInstanceState(outState);
     }
 
     // Async Task to load the artist result set for the search text.
